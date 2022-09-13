@@ -1,0 +1,8 @@
+build/
+.vscode/
+
+*.map
+*.sav
+*.elf
+icons.png
+todo.md
