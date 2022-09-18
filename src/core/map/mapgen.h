@@ -7,8 +7,12 @@
 #include "map.h"
 
 
-#define GEN_MAX_ROOMS   6// 15
-#define GEN_MAX_WORMS   40
+#define GEN_MAX_ROOMS       9
+#define GEN_MAX_WORMS       15
+
+#define GEN_MAX_ROOM_WIDTH 8
+#define GEN_MIN_ROOM_WIDTH 4
+#define GEN_MAX_ROOM_AREA   (GEN_MAX_ROOM_WIDTH * GEN_MAX_ROOM_WIDTH)
 
 typedef struct {
     u8 x, y;
@@ -40,6 +44,7 @@ typedef enum {
     SIGN_DOWN       = BIT(1),
     SIGN_DOWN_RIGHT = BIT(0),
     SIGN_ALL        = 0xFF,
+    SIGN_NONE       = 0,
     SIGN_CARDINAL   = SIGN_UP | SIGN_LEFT | SIGN_RIGHT | SIGN_DOWN,
 } sig_t;
 
@@ -58,9 +63,6 @@ void wrm_do_worms();
 
 Position *gen_get_cand(uint i);
 void gen_set_cand(uint i, uint x, uint y);
-
-// TEMPORARY @todo rework this. this is dumb
-void gen_signature_use_void(bool useVoid);
 
 sig_t sig_get(int tx, int ty);
 bool sig_test(sig_t, sig_t, sig_t);

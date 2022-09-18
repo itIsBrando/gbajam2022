@@ -2,6 +2,7 @@
 #include "map.h"
 #include "../../lib/random.h"
 #include "../../text.h"
+#include <string.h>
 
 
 /**
@@ -35,8 +36,6 @@ bool wrm_can_carve(uint tx, uint ty, direction_t dir) {
  */
 void wrm_create(uint tx, uint ty, direction_t dir) {
     Worm w = {.x = tx, .y = ty, .fails = 8, .dir = dir};
-
-    wrm_carve(&w);
 
     do {
         if(wrm_can_carve(w.x, w.y, w.dir)) {
@@ -83,27 +82,35 @@ void wrm_carve(Worm *w) {
 }
 
 
-
-
 void wrm_do_worms() {
+    Position candidates[MAP_SIZE];
     uint cands = 0;
     uint max_worms = GEN_MAX_WORMS;
 
     for(uint y = 1; y < MAP_TILE_HEIGHT - 1; y++) {
         for(uint x = 1; x < MAP_TILE_WIDTH - 1; x++) {
-            if(sig_get(x, y) == 255)
-                gen_set_cand(cands++, x, y);
+            if(sig_get(x, y) == 255) {
+                Position *p = &candidates[cands++];
+                p->x = x, p->y = y;
+            }
         }
     }
 
-    if(cands < max_worms)
+    if(max_worms > cands)
         max_worms = cands;
 
     while(max_worms) {
         Position *p;
-        do {
-            p = gen_get_cand(rnd_random_bounded(0, cands));
-        } while(sig_get(p->x, p->y) != 255);
+        // @todo randomly getting a cand is not efficient
+        while(true) {
+            uint i = rnd_random_bounded(0, cands);
+            p = &candidates[i];
+            if(sig_get(p->x, p->y) == 255) {
+                break;
+            } else {
+                *p = candidates[--cands]; // shortcut for removing this element
+            }
+        };
         
         wrm_create(p->x, p->y, rnd_random() & 3);
         max_worms--;

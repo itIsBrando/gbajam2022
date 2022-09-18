@@ -8,21 +8,19 @@
 // @todo remove
 void internal_error(char *str, bool fatal);
 
-void internal_gen_room(room_t *rm);
-bool internal_place_room(room_t *r);
-bool internal_can_place_room(room_t *r, uint x, uint y);
+static void internal_gen_room(room_t *rm);
+static bool internal_place_room(room_t *r);
+static bool internal_can_place_room(room_t *r, uint x, uint y);
+static void internal_gen_stairs();
 
 static u8 internal_get_flag(int x, int y);
 static void internal_set_flag(int x, int y, u8 v);
-static bool internal_expand_flag(uint x, uint y, u8 v);
+static void internal_expand_flag(uint x, uint y, u8 v);
 
 
-bool internal_recognizeVoid = false; // recognize void as a solid block
 room_t gen_starting_room;
 
 void gen_generate() {
-    rnd_seed(3);
-
     text_print("MAKING ROOMS", 0, 0);
     gen_gen_rooms();
 
@@ -30,18 +28,11 @@ void gen_generate() {
     wrm_do_worms();
 
     text_print("MAKING DOOR", 0, 0);
-    gen_signature_use_void(true);
     gen_make_flags();
 
     text_print("FINISHING UP    ", 0, 0);
 
-    for(uint y=0; y < 64; y++) {
-        for(uint x=0; x < 64; x++) {
-            u8 f = sig_get(x, y);
-            if(f == 255)
-                map_set(x, y, TILE_VOID);
-        }
-    }
+    internal_gen_stairs();
 
     map_draw();
 }
@@ -49,10 +40,6 @@ void gen_generate() {
 
 inline bool sig_test(sig_t sig, sig_t test, sig_t mask) {
     return (sig & mask) == test;
-}
-
-void gen_signature_use_void(bool useVoid) {
-    internal_recognizeVoid = useVoid;
 }
 
 
@@ -76,9 +63,6 @@ sig_t sig_get(int tx, int ty) {
                 s |= 1;
             else {
                 s |= (*d == TILE_WALL);
-                if(internal_recognizeVoid)
-                    s |= (*d == TILE_VOID);
-
             }
 
             d++;
@@ -120,9 +104,12 @@ room_t *gen_get_starting_room() {
 }
 
 
-void internal_gen_room(room_t *rm) {
-    rm->width = 4 + (rnd_random() & 7);
-    rm->height = 4 + (rnd_random() & 7);
+static void internal_gen_room(room_t *rm) {
+    do {
+        rm->width = rnd_random_bounded(GEN_MIN_ROOM_WIDTH, GEN_MAX_ROOM_WIDTH + 1);
+        rm->height = rnd_random_bounded(GEN_MIN_ROOM_WIDTH, GEN_MAX_ROOM_WIDTH + 1);
+    } while(rm->height * rm->width > GEN_MAX_ROOM_AREA);
+
     rm->x = rm->y = 0;
 }
 
@@ -131,26 +118,16 @@ inline bool map_inbounds(int tx, int ty) {
     return tx >= 0 && ty >= 0 && tx < MAP_TILE_WIDTH && ty < MAP_TILE_HEIGHT;
 }
 
-Position candidates[MAP_TILE_HEIGHT * MAP_TILE_WIDTH];
-
-inline Position *gen_get_cand(uint i) {
-    return &candidates[i];
-}
-
-inline void gen_set_cand(uint i, uint x, uint y) {
-    candidates[i].x = x;
-    candidates[i + 1].y = y;
-}
-
 
 /**
  * @returns true if the room was placed on the map, false otherwise
  */
-bool internal_place_room(room_t *r) {
+static bool internal_place_room(room_t *r) {
+    Position candidates[MAP_SIZE];
     uint i = 0, x, y;
     
-    for(y = 0; y < 64 - r->height; y++) {
-        for(x = 0; x < 64 - r->width; x++) {
+    for(y = 1; y < MAP_TILE_HEIGHT - r->height; y++) {
+        for(x = 1; x < MAP_TILE_WIDTH - r->width; x++) {
             if(internal_can_place_room(r, x, y)) {
                 candidates[i].x = x;
                 candidates[i++].y = y;
@@ -177,7 +154,7 @@ bool internal_place_room(room_t *r) {
 }
 
 
-bool internal_can_place_room(room_t *r, uint x, uint y) {
+static bool internal_can_place_room(room_t *r, uint x, uint y) {
     for(int i = -1; i <= r->height + 1; i++) {
         tile_t *d = map_get_pointer(x - 1, y + i);
         for(int j = -1; j <= r->width + 1; j++) {
@@ -191,7 +168,7 @@ bool internal_can_place_room(room_t *r, uint x, uint y) {
 }
 
 
-static u8 *flags = (u8*)candidates; // size is 64x64
+static u8 flags[MAP_SIZE]; // size is 64x64
 static u8 cur_flag;
 
 static inline u8 internal_get_flag(int x, int y) {
@@ -208,11 +185,11 @@ static inline void internal_set_flag(int x, int y, u8 v) {
 }
 
 
-bool internal_expand_flag(uint x, uint y, u8 v) {
+void internal_expand_flag(uint x, uint y, u8 v) {
     uint cands_len = 1, new_cands_len;
     Position cands[30 * 30], new_cands[30 * 30];
 
-    cands[0].x = x, cands[0].y = y;
+    cands->x = x, cands->x = y;
     internal_set_flag(x, y, v);
     
     do { 
@@ -233,8 +210,6 @@ bool internal_expand_flag(uint x, uint y, u8 v) {
         memcpy(cands, new_cands, new_cands_len * sizeof(Position));
         cands_len = new_cands_len;
     } while(cands_len);
-
-    return true;
 }
 
 
@@ -243,16 +218,16 @@ bool internal_expand_flag(uint x, uint y, u8 v) {
  */
 void gen_make_flags() {
     uint x, y;
-    memset(flags, 0, 64 * 64);
+    memset(flags, 0, LENGTH(flags));
     cur_flag = 1;
 
     for(y = 0; y < MAP_TILE_HEIGHT; y++) {
         for(x = 0; x < MAP_TILE_WIDTH; x++) {
-            if(!map_is_solid(x, y) && internal_get_flag(x, y) == 0)
+            if(!map_is_solid(x, y) && internal_get_flag(x, y) == 0) {
                 internal_expand_flag(x, y, cur_flag++);
+            }
         }
     }
-
 
     // now we will make doors n shiz
     uint doors = 0;
@@ -298,14 +273,25 @@ void gen_make_flags() {
         u8 f1 = internal_get_flag(c->x + dx, c->y + dy);
         u8 f2 = internal_get_flag(c->x - dx, c->y - dy);
         if(f1 != f2) {
-            map_set(c->x, c->y, TILE_DOOR);
+            map_set(c->x, c->y, TILE_NONE);
             internal_expand_flag(c->x, c->y, f1);
         }
 
-        *c = cands[doors - 1];
-        doors--;
+        *c = cands[--doors];
     } while(doors);
 
+}
+
+void internal_gen_stairs() {
+    uint tx;
+    uint ty;
+
+    do {
+        tx = rnd_random() & (MAP_TILE_WIDTH - 1);
+        ty = rnd_random() & (MAP_TILE_HEIGHT - 1);
+    } while(sig_get(tx, ty) != SIGN_NONE);
+    
+    map_set(tx, ty, TILE_STAIR);
 }
 
 

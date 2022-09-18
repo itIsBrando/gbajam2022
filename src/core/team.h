@@ -7,25 +7,23 @@
 
 #define TEAM_MAX_SIZE 6
 
-typedef enum {
-    CONTROL_PLR,
-    CONTROL_AI,
-} control_type_t;
 
 typedef struct Team {
     Unit units[TEAM_MAX_SIZE];
     u8 size;
-
-    control_type_t control;
+    bool auto_follow; // true for other units to follow leader
 } Team;
 
 
-void tm_init(Team *t, unit_type_t types[], uint size, control_type_t cnt, WIN_REGULAR *win);
+void tm_init(Team *t, unit_type_t types[], uint size, WIN_REGULAR *win);
 void tm_update(Team *tm);
 
 bool tm_add(Team *tm, Unit *u);
 void tm_focus(Team *tm, Unit *u);
+void tm_start_turn(Team *tm, Unit *u);
 
 Unit *tm_leader();
+bool tm_auto_follow();
+void tm_set_auto_follow(bool v);
 
 #endif

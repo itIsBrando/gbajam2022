@@ -47,4 +47,11 @@ uint key_pressed_no_repeat();
  */
 uint key_pressed_repeat_after(uint frames);
 
+
+/**
+ * Waits until all keys in `mask` are released
+ * Idles until vblank interrupt
+ */
+void key_wait_until_released(uint mask);
+
 #endif

@@ -1,4 +1,6 @@
 #include "keypad.h"
+#include <gba_systemcalls.h>
+
 
 static uint __keys, __keys_prev;
 static uint __since_scanned = 0;
@@ -24,6 +26,17 @@ inline uint key_pressed()
 inline uint key_pressed_no_repeat()
 {
     return (~__keys_prev) & __keys;
+}
+
+
+void key_wait_until_released(uint mask) {
+    do {
+        key_scan();
+        if((key_pressed() & mask) == 0)
+            return;
+        
+        VBlankIntrWait();
+    } while (true);
 }
 
 

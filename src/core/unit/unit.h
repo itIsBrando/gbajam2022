@@ -18,6 +18,7 @@ typedef struct {
     uint16_t anim_tile;
     direction_t dir;
 
+    bool is_ai;
     bool is_moving;
     bool has_focus; /** @todo camera can follow this Unit. Only one-per-team */
 } Unit;
@@ -47,6 +48,10 @@ int unit_px(uint tx);
 int unit_py(uint ty);
 
 bool unit_canpass(Unit *u, int dx, int dy);
+Unit *unit_at(uint tx, uint ty); /** Gets the Unit at (tx, ty) or NULL */
+
+uint unit_anim_frames();
+void unit_inc_anim_frames();
 
 void plr_init(Unit *p, WIN_REGULAR *win);
 void plr_update();

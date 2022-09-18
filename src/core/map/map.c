@@ -10,22 +10,30 @@ Map map;
 
 const TileData internal_tile_data[] = {
     [TILE_NONE] = {
-        .tiles={66, 66, 66, 65},
+        .tiles={67, 68, 99, 100},
         .solid=false,
+        .ondraw=&tile_draw_none,
     },
     [TILE_WALL] = {
-        .tiles={1, 2, 33, 34},
         .solid=true,
-        .canpass=tile_wall_canpass,
+        .canpass=&tile_wall_canpass,
+        .ondraw=&tile_wall_draw,
     },
     [TILE_VOID] = {
         .tiles={97, 97, 97, 97},
         .solid=false,
+        .ondraw=NULL,
     },
     [TILE_DOOR] = {
-        .tiles={71, 72, 103, 104},
+        .tiles={69, 70, 101, 102},
         .solid=false,
+        .ondraw=NULL,
         // .canpass=tile_door_canpass
+    },
+    [TILE_STAIR] = {
+        .tiles={3, 4, 35, 36},
+        .solid=false,
+        .oninteract=&tile_stair_interact,
     }
 };
 
@@ -42,8 +50,6 @@ void map_init(BG_REGULAR *bg) {
     bg_set_priority(bg, BG_PRIORITY_HIGHEST);
 
     memset(map.data, TILE_WALL, sizeof(map.data) / sizeof(map.data[0]));
-    
-    map_draw();
 }
 
 
@@ -58,8 +64,12 @@ void map_draw() {
     for(uint y = 0; y < MAP_TILE_HEIGHT; y++) {
         for(uint x = 0; x < MAP_TILE_WIDTH; x++) {
             const TileData *tile_data = map_get_data(*d++);
-            
-            bg_rect(map.bg, x << 1, y << 1, 2, 2, (u8*)tile_data->tiles);
+
+            if(tile_data->ondraw)
+                // tile_wall_draw(x, y);
+                tile_data->ondraw(x, y);
+            else
+                bg_rect(map.bg, x << 1, y << 1, 2, 2, (u8*)tile_data->tiles);
         }
     }
 }
@@ -87,29 +97,27 @@ void map_update() {
 }
 
 
-void map_scroll(direction_t dir, scroll_speed_t spd) {
+void map_scroll(direction_t dir) {
     if(map.is_moving)
         return;
 
     map.dx = dir_get_x(dir);
     map.dy = dir_get_y(dir);
-    map.speed = spd;
     map.is_moving = true;
     map.to_px += (map.dx << 4);
     map.to_py += (map.dy << 4);
 }
 
 
-void map_scroll_to(uint tx, uint ty, scroll_speed_t spd) {
+void map_scroll_to(uint tx, uint ty) {
     if(map.is_moving)
         return;
 
-    int px = ((int)tx - 6) << 4, py = ((int)ty - 4) << 4;
+    int px = ((int)tx - 7) << 4, py = ((int)ty - 4) << 4;
 
     map.dx = -dir_get_x(dir_to_x(px, map.px));
     map.dy = -dir_get_y(dir_to_y(py, map.py));
     
-    map.speed = spd;
     map.is_moving = true;
     map.to_px = px, map.to_py = py;
 }
@@ -120,13 +128,18 @@ void map_scroll_to(uint tx, uint ty, scroll_speed_t spd) {
  * @param ty [0, 64)
  */
 void map_set(uint x, uint y, tile_t t) {
-    *map_get_pointer(x, y) = t;
+    if(map_inbounds(x, y))
+        *map_get_pointer(x, y) = t;
 }
+
 
 void map_redraw(uint tx, uint ty) {
     const TileData *d = map_get_data(map_get(tx, ty));
 
-    bg_rect(map.bg, tx << 1, ty << 1, 2, 2, (void*)d->tiles);
+    if(d->ondraw)
+        d->ondraw(tx, ty);
+    else
+        bg_rect(map.bg, tx << 1, ty << 1, 2, 2, (void*)d->tiles);
 }
 
 
@@ -174,9 +187,20 @@ inline bool map_moving() {
     return map.is_moving;
 }
 
-Map *map_get_map() {
+inline Map *map_get_map() {
     return &map;
 }
+
+inline void map_set_scroll_speed(scroll_speed_t s) {
+    if(!map_moving())
+        map.speed = s;
+}
+
+
+inline scroll_speed_t map_scroll_speed() {
+    return map.speed;
+}
+
 
 const inline TileData *map_get_data(tile_t tile) {
     return &internal_tile_data[tile];
