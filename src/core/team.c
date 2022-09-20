@@ -26,22 +26,25 @@ void tm_init(Team *t, unit_type_t types[], uint size, WIN_REGULAR *win) {
 }
 
 
-void tm_update(Team *tm) {
-    Unit *u = tm->units;
+void tm_update() {
+    Unit *u = _tm->units;
 
     unit_inc_anim_frames();
 
     plr_update();
 
-    for(uint i = 0; i < tm->size; i++) {
+    for(uint i = 0; i < _tm->size; i++) {
         unit_update(u);
         u++;
     }
 
+    mob_update();
+
     if(ps_get() == PS_DONE) {
         cur_unit++;
-        cur_unit %= tm->size;
-        tm_start_turn(tm, &tm->units[cur_unit]);
+        cur_unit %= _tm->size;
+        mob_do_turns();
+        tm_start_turn(_tm, &_tm->units[cur_unit]);
     }
 }
 
@@ -86,6 +89,10 @@ bool tm_add(Team *tm, Unit *u) {
 
 Unit *tm_leader() {
     return &_tm->units[0];
+}
+
+Team *tm_get() {
+    return _tm;
 }
 
 

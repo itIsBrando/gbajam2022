@@ -42,8 +42,12 @@ void unit_deinit(Unit *u) {
 
 
 void unit_draw(Unit *u) {
-    const uint tx = u->tx, ty = u->ty;
-    spr_move(u->obj, (tx << 4) - map_get_px() + u->dx, (ty << 4) - map_get_py() + u->dy);
+    if(internal_off_screen(u)) {
+        unit_hide(u);
+    } else {
+        unit_show(u);
+        spr_move(u->obj, (u->tx << 4) - map_get_px() + u->dx, (u->ty << 4) - map_get_py() + u->dy);
+    }
 }
 
 
@@ -110,10 +114,6 @@ void unit_update(Unit *u) {
 
 bool unit_move(Unit *u, direction_t dir) {
     Unit *other_unit;
-    if(!u->has_focus && internal_off_screen(u))
-        unit_hide(u);
-    else
-        unit_show(u);
 
     if(u->is_moving || map_moving())
         return false;
@@ -150,7 +150,7 @@ void unit_move_to(Unit *u, uint tx, uint ty) {
 /**
  * @returns true if the unit is out of the viewport
  */
-static bool internal_off_screen(Unit *u) {
+static inline bool internal_off_screen(Unit *u) {
     const int map_tx = map_get_tx();
     const int map_ty = map_get_ty();
     const int tx = u->tx, ty = u->ty;
@@ -190,14 +190,6 @@ bool unit_canpass(Unit *u, int dx, int dy) {
         return false;
 
     return unit_at(dx, dy) == NULL;
-}
-
-
-inline bool internal_in_range(Unit *u) {
-    uint mx = map_get_tx(), my = map_get_ty();
-
-    return (u->tx >= mx && u->tx < mx + MAP_TILES_X) &&
-     (u->ty >= my && u->ty < my + MAP_TILES_Y);
 }
 
 

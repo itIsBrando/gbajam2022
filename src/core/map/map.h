@@ -53,8 +53,8 @@ typedef struct {
 typedef struct {
     tile_t data[MAP_TILE_WIDTH * MAP_TILE_HEIGHT];
     BG_REGULAR *bg;
-    s16 px, py; // pixel scroll offsets
-    s16 to_px, to_py; // set to move to a specific pixel coordinate
+    int px, py; // pixel scroll offsets
+    int to_px, to_py; // set to move to a specific pixel coordinate
     s16 dx, dy;
 
     bool is_moving;

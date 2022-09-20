@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 #include "../../lib/defines.h"
 #include "../../lib/bitfield.h"
 #include "../unit/unit.h"
@@ -67,4 +68,47 @@ direction_t pf_best_dir(u8 *dist_map, uint x, uint y) {
     }
 
     return best_dir;
+}
+
+
+uint pf_dist(int x1, int y1, int x2, int y2) {
+    x1 -= x2;
+    y1 -= y2;
+    uint x = abs(x1 - x2);
+    uint y = abs(y1 - y2);
+
+    return sqrt(x * x + y * y);
+}
+
+
+bool pf_has_line_of_sight(int x1, int y1, int x2, int y2) {
+    int dx, dy, sx, sy, err, e2;
+    dx = abs(x2 - x1);
+    dy = abs(y2 - y1);
+    sx = x1 < x2 ? 1 : -1;
+    sy = y1 < y2 ? 1 : -1;
+    err = dx + dy;
+
+    while(true) {
+        if(map_is_solid(x1, y1))
+            return false;
+        
+        if(x1 == x2 && y1 == y2)
+            break;
+        e2 = err << 2;
+        if(e2 >= dy) {
+            if(x1 == x2)
+                break;
+            err += dy;
+            x1 += sx;
+        }
+        if(e2 <= dx) {
+            if(y1 == y2)
+                break;
+            err += dx;
+            y1 += sy;
+        }
+    }
+
+    return true;
 }

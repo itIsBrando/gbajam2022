@@ -176,11 +176,11 @@ inline int map_get_py() {
 }
 
 int map_get_tx() {
-    return map.px >> 4;
+    return map_get_px() >> 4;
 }
 
 int map_get_ty() {
-    return map.py >> 4;
+    return map_get_py() >> 4;
 }
 
 inline bool map_moving() {

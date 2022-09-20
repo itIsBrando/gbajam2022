@@ -42,6 +42,11 @@ static void gme_init() {
     tm_init(&_tm, types, 3, &win);
 
     tm_focus(&_tm, _tm.units);
+
+    mob_spawn();
+    mob_spawn();
+    mob_spawn();
+    mob_spawn();
 }
 
 
@@ -56,7 +61,7 @@ static void gme_update() {
     // uint key = key_pressed();
 
     map_update();
-    tm_update(&_tm);
+    tm_update();
     
     spr_copy_all();
 }

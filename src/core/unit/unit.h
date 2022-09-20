@@ -62,4 +62,9 @@ void plr_hud();
 void ps_set(PlayerState);
 PlayerState ps_get();
 
+void mob_init(Unit *u, unit_type_t type, uint tx, uint ty);
+bool mob_spawn();
+void mob_update();
+void mob_do_turns();
+
 #endif
