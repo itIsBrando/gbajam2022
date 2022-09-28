@@ -58,7 +58,7 @@ typedef enum {
 	BLEND_TOP_BG0=BIT(0x0),
 
 	BLEND_MODE_0=0,			/** no blending. */
-	BLEND_MODE_1=0b01<<6,	/** weighted blending. @see `REG_BNDALPHA` */
+	BLEND_MODE_1=0b01<<6,	/** alpha weighted blending. @see `REG_BNDALPHA` */
 	BLEND_MODE_2=0b10<<6,	/** white @see REG_BLDY` */
 	BLEND_MODE_3=0b11<<6,	/** black @see REG_BLDY` */
 } blnd_cnt_mask_t;
@@ -135,6 +135,11 @@ void spr_set_tile(obj_t *obj, u16 tile);
  * @param mode SPR_GFX_...
  */
 void spr_set_gfx_mode(obj_t *obj, spr_gfx_mode_t mode);
+
+/**
+ * 
+ */
+void spr_set_affine_status(obj_t *obj, bool affine);
 
 /**
  * Apply horizontal or vertical flips on non-affine sprites.

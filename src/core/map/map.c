@@ -45,11 +45,10 @@ void map_init(BG_REGULAR *bg) {
     map.bg = bg;
     map.px = map.py = 0;
     map.to_px = map.to_py = -1;
+    map.level = 1;
 
     bg_set_size(bg, BG_SIZE_AFF_128x128);
     bg_set_priority(bg, BG_PRIORITY_HIGHEST);
-
-    memset(map.data, TILE_WALL, sizeof(map.data) / sizeof(map.data[0]));
 }
 
 

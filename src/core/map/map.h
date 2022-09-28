@@ -56,6 +56,7 @@ typedef struct {
     int px, py; // pixel scroll offsets
     int to_px, to_py; // set to move to a specific pixel coordinate
     s16 dx, dy;
+    u16 level;
 
     bool is_moving;
     scroll_speed_t speed;

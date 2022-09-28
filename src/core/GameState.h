@@ -10,10 +10,11 @@ typedef struct {
 } GameState;
 
 
-void state_init(const GameState *s);
+void state_init(const GameState *s, bool initialize);
 void state_update();
 
 
 extern const GameState gme_main_state;
+extern const GameState sta_main_state;
 
 #endif

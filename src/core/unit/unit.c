@@ -1,6 +1,8 @@
 #include "unit.h"
+#include "stats.h"
 
 #include <stdlib.h>
+#include <string.h>
 #include "../../lib/bg.h"
 
 static void internal_swap_tile(Unit *u);
@@ -18,11 +20,13 @@ static uint _units_size = 0;
 static Unit *_all_units[30];
 
 
-void unit_init(Unit *u, unit_type_t type) {
+void unit_init(Unit *u, unit_type_t type, void (*ondeinit)()) {
     u->tile = internal_unit_tiles[type];
     u->anim_tile = u->tile + 16;
     u->obj = spr_alloc(16, 16, u->tile);
     u->is_moving = false;
+    u->dead = 0;
+    u->stats = *stat_get(u);
 
     u->tx = u->ty = 1;
     u->dx = u->dy = 0;
@@ -36,8 +40,26 @@ void unit_init(Unit *u, unit_type_t type) {
 
 
 void unit_deinit(Unit *u) {
+    uint i;
+    bool found = false;
+
     spr_free(u->obj);
-    // @todo REMOVE UNIT FROM `_all_units`
+
+    if(u->ondeinit) {
+        u->ondeinit(u);
+    }
+
+    for(i = 0; i < _units_size; i++) {
+        if(u == _all_units[i]) {
+            found = true;
+            break;
+        }
+    }
+
+    if(!found)
+        return;
+    
+    _all_units[i] = _all_units[--_units_size];
 }
 
 
@@ -72,9 +94,39 @@ inline void unit_inc_anim_frames() {
 
 
 /**
- * Called every frame
+ * Call once per frame
+ */
+void unit_update_all() {
+    unit_inc_anim_frames();
+
+    for(uint i = 0; i < _units_size; i++) {
+        unit_update(_all_units[i]);
+    }
+}
+
+
+/**
+ * Called every frame automatically
+ * @see unit_update_all
  */
 void unit_update(Unit *u) {
+
+    // if unit is dead, flash until timer == 0, then kill
+    if(unit_is_dead(u)) {
+        if(--u->dead > 0) {
+            if((u->dead & 7) < 3)
+                unit_hide(u);
+            else {
+                unit_show(u);
+                unit_draw(u);
+            }
+        } else {
+            unit_deinit(u);
+        }
+        
+        return;
+    }
+
     if((unit_anim_frames()) == 0) {
         internal_swap_tile(u); // animate
     }
@@ -86,7 +138,7 @@ void unit_update(Unit *u) {
 
     const int dx = dir_get_x(u->dir), dy = dir_get_y(u->dir);
 
-    if(u->is_moving && u->has_focus) {
+    if(u->has_focus) {
         if(map_moving())
             return;
         
@@ -190,6 +242,17 @@ bool unit_canpass(Unit *u, int dx, int dy) {
         return false;
 
     return unit_at(dx, dy) == NULL;
+}
+
+
+
+void unit_kill(Unit *u) {
+    u->dead = 120;
+}
+
+
+inline bool unit_is_dead(Unit *u) {
+    return u->dead;
 }
 
 

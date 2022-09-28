@@ -5,9 +5,6 @@
 #include "../../lib/random.h"
 #include <string.h>
 
-// @todo remove
-void internal_error(char *str, bool fatal);
-
 static void internal_gen_room(room_t *rm);
 static bool internal_place_room(room_t *r);
 static bool internal_can_place_room(room_t *r, uint x, uint y);
@@ -21,7 +18,14 @@ static void internal_expand_flag(uint x, uint y, u8 v);
 room_t gen_starting_room;
 
 void gen_generate() {
-    text_print("MAKING ROOMS", 0, 0);
+    tile_t *map = map_get_map()->data;
+    memset(map, TILE_WALL, MAP_SIZE * sizeof(map[0]));
+
+    bg_fill(map_get_map()->bg, 0, 0, MAP_TILE_WIDTH * 2, MAP_TILE_HEIGHT * 2, 97);
+
+    text_print("GENERATING LEVEL", (240 / 8 - 16) / 2, (160 / 8 - 1) / 2);
+
+    text_print("MAKING ROOMS ", 0, 0);
     gen_gen_rooms();
 
     text_print("MAKING HALLS", 0, 0);
@@ -79,12 +83,12 @@ void gen_gen_rooms() {
     uint fail_max = 2; // number of times we fail placing a room before we stop
     room_t rooms[room_max];
 
-    text_uint(room_max, 17, 0);
-    text_char('/', 15, 0);
+    text_uint(room_max, 15, 0);
+    text_char('/', 14, 0);
     do {
         room_t *cur_room = &rooms[r];
         internal_gen_room(cur_room);
-        text_uint(GEN_MAX_ROOMS + 1 - room_max, 14, 0);
+        text_uint(GEN_MAX_ROOMS + 1 - room_max, 13, 0);
         if(internal_place_room(cur_room))
             room_max--, r++;
         else
@@ -292,12 +296,4 @@ void internal_gen_stairs() {
     } while(sig_get(tx, ty) != SIGN_NONE);
     
     map_set(tx, ty, TILE_STAIR);
-}
-
-
-
-void internal_error(char *str, bool fatal) {
-    text_print("                    ", 0, 0);
-    text_print(str, 0, 0);
-    while(fatal);
 }

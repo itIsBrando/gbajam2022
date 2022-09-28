@@ -41,6 +41,7 @@ static void gme_init() {
     unit_type_t types[] = {UNIT_HERO, UNIT_SKELETON, UNIT_SKELETON};
     tm_init(&_tm, types, 3, &win);
 
+    tm_set_starting_pos();
     tm_focus(&_tm, _tm.units);
 
     mob_spawn();
@@ -58,9 +59,11 @@ static void gme_deinit() {
 
 static void gme_update() {
     key_scan();
-    // uint key = key_pressed();
 
     map_update();
+
+    unit_update_all();
+
     tm_update();
     
     spr_copy_all();

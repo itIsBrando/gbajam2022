@@ -13,7 +13,7 @@ static uint _unit_size = 0;
 static void _do_turn(Unit *u);
 
 void mob_init(Unit *u, unit_type_t type, uint tx, uint ty) {
-    unit_init(u, type);
+    unit_init(u, type, NULL);
     u->tx = tx, u->ty = ty;
     u->is_ai = true;
 }
@@ -37,9 +37,6 @@ bool mob_spawn() {
 
 
 void mob_update() {
-    for(uint i = 0; i < _unit_size; i++) {
-        unit_update(&_units[i]);
-    }
 
 }
 

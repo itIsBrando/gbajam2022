@@ -130,7 +130,7 @@ inline void spr_flip(obj_t *obj, const spr_flip_mask mask)
  */
 inline void spr_hide(obj_t *obj)
 {
-	obj->attr0 &= 0xFFCF;
+	obj->attr0 &= 0xFCFF;
 	obj->attr0 |= 1 << 0x9;
 }
 
@@ -194,6 +194,13 @@ inline void spr_set_gfx_mode(obj_t *obj, spr_gfx_mode_t mode)
 {
 	obj->attr0 &= 0xF3FF;
 	obj->attr0 |= (mode & 0x3) << 0xA;
+}
+
+inline void spr_set_affine_status(obj_t *obj, bool affine)
+{
+	obj->attr0 &= 0xFCFF;
+	obj->attr0 |= affine << 0x8;
+	obj->attr1 |= BIT(0x9);
 }
 
 

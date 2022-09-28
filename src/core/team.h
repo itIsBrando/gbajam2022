@@ -22,6 +22,7 @@ Team *tm_get();
 bool tm_add(Team *tm, Unit *u);
 void tm_focus(Team *tm, Unit *u);
 void tm_start_turn(Team *tm, Unit *u);
+void tm_set_starting_pos();
 
 Unit *tm_leader();
 bool tm_auto_follow();

@@ -59,7 +59,7 @@ int main(void) {
 
 	foo(FLASH_ID_TEXT); // @todo remove this unnecessary function
 
-	state_init(&gme_main_state);
+	state_init(&gme_main_state, true);
 
 	do {
 		state_update();

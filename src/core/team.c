@@ -2,6 +2,7 @@
 #include "team.h"
 #include "unit/unit.h"
 #include "map/mapgen.h"
+#include "../text.h"
 
 static Team *_tm;
 static uint cur_unit = 0;
@@ -15,8 +16,8 @@ void tm_init(Team *t, unit_type_t types[], uint size, WIN_REGULAR *win) {
     _tm = t;
 
     for(uint i = 0; i < size; i++) {
-        unit_init(&t->units[i], *types++);
-        unit_move_to(&t->units[i], r->x + 1, r->y + 1 + i);
+        unit_init(&t->units[i], *types++, NULL);
+        unit_move_to(&t->units[i], r->x + 1 + (i & 1), r->y + 1 + (i >> 1));
     }
 
     plr_init(t->units, win);
@@ -26,24 +27,28 @@ void tm_init(Team *t, unit_type_t types[], uint size, WIN_REGULAR *win) {
 }
 
 
-void tm_update() {
-    Unit *u = _tm->units;
-
-    unit_inc_anim_frames();
-
-    plr_update();
+void tm_set_starting_pos() {
+    room_t *r = gen_get_starting_room();
 
     for(uint i = 0; i < _tm->size; i++) {
-        unit_update(u);
-        u++;
+        unit_move_to(&_tm->units[i], r->x + 1 + (i & 1), r->y + 1 + (i >> 1));
     }
+}
 
-    mob_update();
 
+void tm_update() {
+
+    plr_update();
     if(ps_get() == PS_DONE) {
-        cur_unit++;
-        cur_unit %= _tm->size;
-        mob_do_turns();
+        do {
+            cur_unit++;
+            cur_unit %= _tm->size;
+        } while(unit_is_dead(&_tm->units[cur_unit]));
+
+        // only move AI when we are leader (aka once per each unit's movement)
+        if(cur_unit == 0)
+            mob_do_turns();
+
         tm_start_turn(_tm, &_tm->units[cur_unit]);
     }
 }
