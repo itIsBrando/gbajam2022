@@ -37,7 +37,6 @@ const void (*ps_states[PS_SIZE])(void) = {
 const void (*ps_init[PS_SIZE])(void) = {
     [PS_ATK] = ps_init_attack,
     [PS_MOVE] = ps_init_move,
-    [PS_FOLLOWING] = ps_init_move,
     [PS_SELECTING] = ps_init_selecting,
     [PS_DONE] = ps_init_done,
 };
@@ -150,41 +149,22 @@ static void ps_selecting() {
     key_wait_until_released(KEY_RIGHT | KEY_LEFT | KEY_UP | KEY_DOWN);
 }
 
-static obj_t *_atk_spr[4];
 
 static void _attack_clean_up() {
-    for(uint i = 0; i < 4; i++) {
-        spr_free(_atk_spr[i]);
-    }
+    cur_deinit();
 }
 
 
 static void ps_init_attack() {
-    for(uint i = 0; i < 4; i++) {
-        uint tx = plr->tx + dir_get_x(i), ty = plr->ty + dir_get_y(i);
-        
-        _atk_spr[i] = spr_alloc((tx - map_get_tx()) << 4, (ty - map_get_ty()) << 4, 33);
-        if(map_is_solid(tx, ty)) {
-            spr_hide(_atk_spr[i]);
-        } else {
-            spr_set_size(_atk_spr[i], SPR_SIZE_16x16);
-            spr_set_gfx_mode(_atk_spr[i], SPR_GFX_ALPHA_BLENDING);
-            spr_set_priority(_atk_spr[i], SPR_PRIORITY_HIGH);
-        }
-    }
-
+    cur_init(plr);
     plr_hud();
 }
 
-static bool _do_atk(direction_t d) {
-    Unit *u = unit_at(plr->tx + dir_get_x(d), plr->ty + dir_get_y(d));
-
-    if(!u || unit_is_dead(u) || !u->is_ai)
+static bool _do_atk() {
+    if(!cur_do_attack(plr)) {
+        text_print("CANNOT ATTACK HERE", 0, 19); // @TODO REPLACE WITH HUD FUNCTION
         return false;
-    
-    unit_kill(u);
-
-    key_wait_until_released(KEY_LEFT | KEY_RIGHT | KEY_UP | KEY_DOWN);
+    }
 
     _attack_clean_up();
     ps_set(PS_DONE);
@@ -194,6 +174,8 @@ static bool _do_atk(direction_t d) {
 
 
 static void ps_attack() {
+    key = key_pressed_repeat_after(8);
+
     if(key & KEY_B) {
         ps_set(PS_SELECTING);
         _attack_clean_up();
@@ -202,17 +184,21 @@ static void ps_attack() {
 
 
     if(key & KEY_RIGHT)
-        _do_atk(DIRECTION_RIGHT);
+        cur_move(DIRECTION_RIGHT);
     else if(key & KEY_LEFT)
-        _do_atk(DIRECTION_LEFT);
+        cur_move(DIRECTION_LEFT);
     else if(key & KEY_UP)
-        _do_atk(DIRECTION_UP);
+        cur_move(DIRECTION_UP);
     else if(key & KEY_DOWN)
-        _do_atk(DIRECTION_DOWN);
+        cur_move(DIRECTION_DOWN);
+
+    if(key & KEY_A)
+        _do_atk(DIRECTION_NONE);
+
+    cur_draw();
 }
 
 
-// @todo prevent follower from swapping with the leader
 static void ps_following() {
     if(map_moving() || plr->is_moving || plr == tm_leader())
         return;
@@ -293,13 +279,23 @@ void plr_hud() {
     bg_fill(_win->background, 0, 0, 30, 20, 0);
 
     // draw HP bar
-    u16 tiles[] = {
-        544, 576, 577, 577, 578
-    };
-    bg_rect(_win->background, 0, 0, 5, 1, tiles);
-    bg_write_tile(_win->background, 0, 1, ps_icons[state]);
+    bg_write_tile(_win->background, 0, 0, 544);
+    text_uint(plr->stats.hp, 2, 0);
+    text_char('/', 3, 0);
+    text_uint(plr->stats.max_hp, 5, 0);
+    
+    // draw lvl
+    bg_write_tile(_win->background, 0, 1, 546);
+    text_uint(plr->stats.level, 1, 1);
+
+    // draw current floor
+    // bg_write_tile(_win->background, 28, 0, 546);
+    // text_uint(map_get_map()->level, 29, 0);
+
+    // draw icon
+    bg_write_tile(_win->background, 3, 1, ps_icons[state]);
 
     // draw leader icon
     if(tm_leader() == plr)
-        bg_write_tile(_win->background, 1, 1, 582);
+        bg_write_tile(_win->background, 4, 1, 582);
 }

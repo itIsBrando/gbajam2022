@@ -33,6 +33,10 @@ void tm_set_starting_pos() {
     for(uint i = 0; i < _tm->size; i++) {
         unit_move_to(&_tm->units[i], r->x + 1 + (i & 1), r->y + 1 + (i >> 1));
     }
+
+    // force map to instantly move to team leader
+    map_set_scroll_speed(MAP_SCROLL_INSTANT);
+    map_scroll_to(_tm->units->tx, _tm->units->ty);
 }
 
 

@@ -4,7 +4,6 @@
 #include "../../lib/bg.h"
 #include "../GameState.h"
 #include <stdint.h>
-#include <gba_base.h> /** @todo remove dependancy which stems solely from use of BIT */
 
 
 

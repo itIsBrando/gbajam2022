@@ -32,7 +32,7 @@ static void sta_update() {
     // if unit is on stairs, then hide
     Unit *u = _tm->units;
     for(uint i = 0; i < _tm->size; i++) {
-        if(map_get(u->tx, u->ty) == TILE_STAIR && !u->is_moving) {
+        if(map_get(u->tx, u->ty) == TILE_STAIR && !u->is_moving && !map_moving()) {
             unit_hide(u);
             sta_done();
         }

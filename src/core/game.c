@@ -38,7 +38,7 @@ static void gme_init() {
 
     gen_generate();
 
-    unit_type_t types[] = {UNIT_HERO, UNIT_SKELETON, UNIT_SKELETON};
+    unit_type_t types[] = {UNIT_HERO, UNIT_MAGE, UNIT_MAGE};
     tm_init(&_tm, types, 3, &win);
 
     tm_set_starting_pos();

@@ -5,10 +5,13 @@
 #include "../map/map.h"
 #include "../../lib/obj.h"
 
+#define UNIT_MAX_LVL 40
 
 typedef enum {
     UNIT_HERO,
-    UNIT_SKELETON,
+    UNIT_MAGE,
+
+    UNIT_TYPES
 } unit_type_t;
 
 
@@ -20,9 +23,13 @@ typedef enum {
 
 
 typedef struct {
-    u8 hp;
+    s8 max_hp;
+    s8 hp;
+    u8 atk;
+    u8 def;
     u8 move_points;
-    attack_type_t atkrng;
+    u8 level;
+    attack_type_t attack_pattern;
 } Stats;
 
 
@@ -39,7 +46,7 @@ typedef struct {
 
     bool is_ai;
     bool is_moving;
-    bool has_focus; /** @todo camera can follow this Unit. Only one-per-team */
+    bool has_focus;
 
     void (*ondeinit)(void *); /** Unit pointer is parameter that is passed as void :'( */
 } Unit;
@@ -68,6 +75,7 @@ void unit_show(Unit *u);
 
 void unit_kill(Unit *u);
 bool unit_is_dead(Unit *u);
+bool unit_attack(Unit *atker, uint tx, uint ty);
 
 int unit_px(uint tx);
 int unit_py(uint ty);
@@ -77,6 +85,14 @@ Unit *unit_at(uint tx, uint ty); /** Gets the Unit at (tx, ty) or NULL */
 
 uint unit_anim_frames();
 void unit_inc_anim_frames();
+
+void cur_draw();
+void cur_init(Unit *u);
+void cur_deinit();
+void cur_move(direction_t dir);
+bool cur_do_attack(Unit *plr);
+bool atk_get(attack_type_t p, int dx, int dy);
+
 
 void plr_init(Unit *p, WIN_REGULAR *win);
 void plr_update();

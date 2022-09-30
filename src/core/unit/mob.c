@@ -5,6 +5,7 @@
 #include "../map/path.h"
 #include "../map/mapgen.h"
 #include "unit.h"
+#include "stats.h"
 #include "../team.h"
 
 static Unit _units[10];
@@ -16,6 +17,9 @@ void mob_init(Unit *u, unit_type_t type, uint tx, uint ty) {
     unit_init(u, type, NULL);
     u->tx = tx, u->ty = ty;
     u->is_ai = true;
+    
+    // get stats to satisfy floor level
+    stat_fill(u, map_get_map()->level);
 }
 
 
@@ -31,7 +35,7 @@ bool mob_spawn() {
         ty = rnd_random_bounded(0, MAP_TILE_HEIGHT);
     } while(map_is_solid(tx, ty) || sig_get(tx, ty) != 0);
 
-    mob_init(&_units[_unit_size++], UNIT_SKELETON, tx, ty);
+    mob_init(&_units[_unit_size++], UNIT_MAGE, tx, ty);
     return true;
 }
 

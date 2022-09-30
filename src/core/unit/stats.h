@@ -3,6 +3,7 @@
 
  #include "unit.h"
 
-const Stats *stat_get(Unit *u);
+void stat_fill(Unit *u, uint lvl);
+uint stat_scale(uint lvl, u8 base_val);
 
 #endif

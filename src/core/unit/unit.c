@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "../../lib/bg.h"
 
 static void internal_swap_tile(Unit *u);
@@ -12,8 +13,10 @@ uint internal_anim_frames = 0;
 
 const u16 internal_unit_tiles[] = {
     [UNIT_HERO]=1,
-    [UNIT_SKELETON]=5,
+    [UNIT_MAGE]=5,
 };
+
+static_assert(LENGTH(internal_unit_tiles) == UNIT_TYPES, "`internal_unit_tiles` does not match UNIT+TYPES");
 
 
 static uint _units_size = 0;
@@ -26,7 +29,10 @@ void unit_init(Unit *u, unit_type_t type, void (*ondeinit)()) {
     u->obj = spr_alloc(16, 16, u->tile);
     u->is_moving = false;
     u->dead = 0;
-    u->stats = *stat_get(u);
+    u->type = type;
+    
+    stat_fill(u, 1);
+    u->stats.hp = u->stats.max_hp;
 
     u->tx = u->ty = 1;
     u->dx = u->dy = 0;
@@ -247,7 +253,7 @@ bool unit_canpass(Unit *u, int dx, int dy) {
 
 
 void unit_kill(Unit *u) {
-    u->dead = 120;
+    u->dead = 80;
 }
 
 
