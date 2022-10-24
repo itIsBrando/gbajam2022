@@ -35,8 +35,8 @@ void bg_affine_init(AFFINE_BG *bg, const uint8_t mapBlock, const uint8_t tileBlo
 
 
 void bg_clamp_coordinates(const BG_REGULAR *bg, uint *tx, uint *ty);
-void bg_show(const BG_REGULAR *bg);
-void bg_hide(const BG_REGULAR *bg);
+void bg_show(const uint num);
+void bg_hide(const uint num);
 
 /**
  * Fills the rectangle from (x, y) to (w, h) with `tile`

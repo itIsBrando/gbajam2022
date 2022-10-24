@@ -4,33 +4,28 @@
 #include <stdio.h>
 #include "../map/map.h"
 #include "../../lib/obj.h"
+#include "../item/item.h"
+#include "stats.h"
 
 #define UNIT_MAX_LVL 40
 
-typedef enum {
+typedef enum unit_type_t {
     UNIT_HERO,
     UNIT_MAGE,
-
+    UNIT_ORGE,
+    
     UNIT_TYPES
 } unit_type_t;
 
 
 typedef enum {
-    STAT_ATK_MELEE, // enemies direction in front or to the side
-    STAT_ATK_MAGE, // 3 tiles in a straight line
-    STAT_ATK_ARCH, // 2x2 diamond
-} attack_type_t;
+    ATK_FAIL_EMPTY,
+    ATK_FAIL_FRIENDLY,
+    ATK_FAIL_OUT_OF_RANGE,
+    ATK_FAIL_SELF,
+    ATK_SUCCESS,
+} atk_error_t;
 
-
-typedef struct {
-    s8 max_hp;
-    s8 hp;
-    u8 atk;
-    u8 def;
-    u8 move_points;
-    u8 level;
-    attack_type_t attack_pattern;
-} Stats;
 
 
 typedef struct {
@@ -43,6 +38,7 @@ typedef struct {
     uint16_t anim_tile;
     direction_t dir;
     Stats stats;
+    Inventory inv;
 
     bool is_ai;
     bool is_moving;
@@ -64,18 +60,23 @@ typedef enum {
 } PlayerState;
 
 void unit_init(Unit *u, unit_type_t type, void (*ondeinit)());
+const char *unit_name(unit_type_t type);
 void unit_deinit(Unit *u);
 void unit_draw(Unit *u);
 void unit_update(Unit *u);
 void unit_update_all();
+void unit_hide_all();
 bool unit_move(Unit *u, direction_t dir);
 void unit_move_to(Unit *u, uint tx, uint ty);
 void unit_hide(Unit *u);
 void unit_show(Unit *u);
+void unit_use_item(Unit *u, Item *itm);
+u16 unit_get_tile(unit_type_t type);
 
+void unit_heal(Unit *u, uint hp);
 void unit_kill(Unit *u);
 bool unit_is_dead(Unit *u);
-bool unit_attack(Unit *atker, uint tx, uint ty);
+atk_error_t unit_attack(Unit *atker, uint tx, uint ty);
 
 int unit_px(uint tx);
 int unit_py(uint ty);
@@ -90,7 +91,7 @@ void cur_draw();
 void cur_init(Unit *u);
 void cur_deinit();
 void cur_move(direction_t dir);
-bool cur_do_attack(Unit *plr);
+atk_error_t cur_do_attack(Unit *plr);
 bool atk_get(attack_type_t p, int dx, int dy);
 
 
@@ -105,6 +106,7 @@ PlayerState ps_get();
 
 void mob_init(Unit *u, unit_type_t type, uint tx, uint ty);
 bool mob_spawn();
+void mob_remove_all();
 void mob_update();
 void mob_do_turns();
 

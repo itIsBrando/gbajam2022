@@ -30,16 +30,11 @@ static void sta_update() {
     unit_update_all();
 
     // if unit is on stairs, then hide
-    Unit *u = _tm->units;
-    for(uint i = 0; i < _tm->size; i++) {
-        if(map_get(u->tx, u->ty) == TILE_STAIR && !u->is_moving && !map_moving()) {
-            unit_hide(u);
-            sta_done();
-        }
-
-        u++;
+    Unit *u =tm_leader();
+    if(!u->is_moving && !map_moving()) {
+        sta_done();
     }
-    
+
     // if not, then move towards stairs
 
     spr_copy_all();
@@ -47,10 +42,12 @@ static void sta_update() {
 
 
 static void sta_done() {
-    // @todo remove old mobs
+    unit_hide_all();
+
+    mob_remove_all();
     gen_generate();
     tm_set_starting_pos();
-    // @todo mob spawning
+    mob_spawn(); mob_spawn(); mob_spawn(); mob_spawn(); // @todo mob spawning
     state_init(&gme_main_state, false);
 }
 

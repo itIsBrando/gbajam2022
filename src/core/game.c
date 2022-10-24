@@ -3,6 +3,7 @@
 #include "unit/unit.h"
 #include "map/map.h"
 #include "map/mapgen.h"
+#include "hud/hud.h"
 
 #include <gba_systemcalls.h>
 #include "../lib/keypad.h"
@@ -18,6 +19,7 @@ static WIN_REGULAR win;
 
 static Team _tm;
 
+
 static void gme_init() {
     bg_affine_init(&_bg, 12, 0, 2);
 
@@ -29,7 +31,7 @@ static void gme_init() {
 
     text_init(&_bg_win, 525);
 
-    text_print("A BUTTON TO START", 0, 0);
+    bar_string("A BUTTON TO START", FMT_CENTER_JUSTIFY);
     do {
         key_scan();
         rnd_seed(rnd_random());
@@ -38,7 +40,7 @@ static void gme_init() {
 
     gen_generate();
 
-    unit_type_t types[] = {UNIT_HERO, UNIT_MAGE, UNIT_MAGE};
+    unit_type_t types[] = {UNIT_HERO, UNIT_MAGE, UNIT_ORGE};
     tm_init(&_tm, types, 3, &win);
 
     tm_set_starting_pos();
@@ -65,6 +67,7 @@ static void gme_update() {
     unit_update_all();
 
     tm_update();
+    bar_update();
     
     spr_copy_all();
 }

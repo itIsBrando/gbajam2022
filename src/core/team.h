@@ -25,6 +25,7 @@ void tm_start_turn(Team *tm, Unit *u);
 void tm_set_starting_pos();
 
 Unit *tm_leader();
+bool tm_is_leader(Unit *u);
 bool tm_auto_follow();
 void tm_set_auto_follow(bool v);
 

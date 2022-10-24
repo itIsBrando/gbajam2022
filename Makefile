@@ -22,7 +22,7 @@ include $(DEVKITARM)/gba_rules
 #---------------------------------------------------------------------------------
 TARGET		:= $(notdir $(CURDIR))
 BUILD		:= build
-SOURCES		:= src src/tiles src/lib src/gfx src/core src/core/unit src/core/map src/core/map/tiles
+SOURCES		:= src src/tiles src/lib src/gfx src/core src/core/unit src/core/map src/core/map/tiles src/core/hud src/core/item
 INCLUDES	:= include
 GRAPHICS	:= graphics
 DATA		:=

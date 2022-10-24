@@ -22,6 +22,7 @@ void gen_generate() {
     memset(map, TILE_WALL, MAP_SIZE * sizeof(map[0]));
 
     bg_fill(map_get_map()->bg, 0, 0, MAP_TILE_WIDTH * 2, MAP_TILE_HEIGHT * 2, 97);
+    bg_fill(text_get_bg(), 0, 0, 30, 20, 0);
 
     text_print("GENERATING LEVEL", (240 / 8 - 16) / 2, (160 / 8 - 1) / 2);
 
@@ -83,12 +84,12 @@ void gen_gen_rooms() {
     uint fail_max = 2; // number of times we fail placing a room before we stop
     room_t rooms[room_max];
 
-    text_uint(room_max, 15, 0);
-    text_char('/', 14, 0);
     do {
         room_t *cur_room = &rooms[r];
         internal_gen_room(cur_room);
-        text_uint(GEN_MAX_ROOMS + 1 - room_max, 13, 0);
+
+        text_printf("MAKING ROOMS:%d/%d", 0, 0, GEN_MAX_ROOMS + 1 - room_max, GEN_MAX_ROOMS);
+
         if(internal_place_room(cur_room))
             room_max--, r++;
         else

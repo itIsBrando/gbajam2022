@@ -3,6 +3,8 @@
 
 #include "map.h"
 
+#define pf_dist_unit(u1, u2) pf_dist((u1)->tx, (u1)->ty, (u2)->tx, (u2)->ty)
+
 /**
  * Gets the distance between two points
  */

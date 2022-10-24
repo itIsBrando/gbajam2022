@@ -1,4 +1,5 @@
 #include "unit.h"
+#include "../hud/hud.h"
 #include "../../text.h"
 
 #include <stdlib.h>
@@ -25,9 +26,9 @@ static bool cur_can_move(direction_t dir) {
  * Attacks for a player at the cursor's current position
  * @returns false if player cannot attack at that position
  */
-bool cur_do_attack(Unit *plr) {
+atk_error_t cur_do_attack(Unit *plr) {
     if(!atk_get(plr->stats.attack_pattern, dx, dy))
-        return false;
+        return ATK_FAIL_OUT_OF_RANGE;
 
     return unit_attack(plr, plr->tx + dx, plr->ty + dy);
 }
@@ -80,6 +81,8 @@ void cur_deinit() {
         if(_atk_spr[i])
             spr_free(_atk_spr[i]);
     }
+
+    bar_hide();
 }
 
 
@@ -94,12 +97,16 @@ void cur_move(direction_t dir) {
 
     Unit *u = unit_at(cx + dx, cy + dy);
 
-    if(!u)
+    if(!u) {
+        bar_hide();
         return;
+    }
 
-    // @todo replace with a HUD function
-    text_write_tile(544, 0, 19);
-    text_uint(u->stats.hp, 2, 19);
-
-    text_uint(u->stats.atk, 5, 19);
+    if(u->is_ai)
+        text_set_pal(1);
+    else
+        text_set_pal(2);
+    
+    bar_stat(&u->stats);
+    text_set_pal(0);
 }

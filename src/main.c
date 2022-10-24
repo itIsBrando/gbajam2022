@@ -50,6 +50,8 @@ int main(void) {
 	memset16((u16*)&tile_mem[0][512], 0x0000, 32); // this tile is 4bpp
 	background_palette_mem[0xC] = RGB15(0, 0, 0); // set window bg color to black
 	background_palette_mem[0x0] = RGB15(0, 0, 0); // set window bg color to black
+	background_palette_mem[4 + 16] = RGB15(31, 0, 0);
+	background_palette_mem[4 + 32] = RGB15(0, 20, 31);
 
 	spr_init(); // initialize sprites
 

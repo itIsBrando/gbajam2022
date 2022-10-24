@@ -4,11 +4,18 @@
 #include "lib/defines.h"
 #include "lib/bg.h"
 
+#include <stdarg.h>
+
 /**
  * Sets the palette number for all text operations
  * @param pal_num palette number (0x0-0xF)
  */
 void text_set_pal(u8 pal_num);
+
+/**
+ * @returns the background used for text rendering
+ */
+BG_REGULAR *text_get_bg();
 
 /**
  * @param bg Background that we will target
@@ -25,6 +32,15 @@ void text_write_tile(u16 tile, const u16 x, const u16 y);
  * @param y tile y
  */
 void text_print(char *string, u16 x, u16 y);
+
+
+/**
+ * Prints a string
+ * @param x tile x
+ * @param y tile y
+ * @param ... format variable
+ */
+void text_printf(char *str, u16 x, u16 y, ...);
 
 
 /**

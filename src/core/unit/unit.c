@@ -1,5 +1,6 @@
 #include "unit.h"
 #include "stats.h"
+#include "../item/item.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -14,9 +15,18 @@ uint internal_anim_frames = 0;
 const u16 internal_unit_tiles[] = {
     [UNIT_HERO]=1,
     [UNIT_MAGE]=5,
+    [UNIT_ORGE]=9
 };
 
-static_assert(LENGTH(internal_unit_tiles) == UNIT_TYPES, "`internal_unit_tiles` does not match UNIT+TYPES");
+static const char _names[][7] = {
+    "HERO",
+    "MAGE",
+    "GRUM",
+};
+
+
+static_assert(LENGTH(_names) == UNIT_TYPES, "`_names` does not match UNIT_TYPES");
+static_assert(LENGTH(internal_unit_tiles) == UNIT_TYPES, "`internal_unit_tiles` does not match UNIT_TYPES");
 
 
 static uint _units_size = 0;
@@ -31,7 +41,7 @@ void unit_init(Unit *u, unit_type_t type, void (*ondeinit)()) {
     u->dead = 0;
     u->type = type;
     
-    stat_fill(u, 1);
+    stat_fill(&u->stats, type, 1);
     u->stats.hp = u->stats.max_hp;
 
     u->tx = u->ty = 1;
@@ -42,6 +52,16 @@ void unit_init(Unit *u, unit_type_t type, void (*ondeinit)()) {
     spr_set_size(u->obj, SPR_SIZE_16x16);
     spr_set_priority(u->obj, SPR_PRIORITY_LOW);
     unit_draw(u);
+    inv_add(&u->inv, itm_get(ITEM_HEAL_POTION));
+}
+
+u16 unit_get_tile(unit_type_t type) {
+    return internal_unit_tiles[type];
+}
+
+
+const char *unit_name(unit_type_t type) {
+    return _names[type];
 }
 
 
@@ -76,6 +96,15 @@ void unit_draw(Unit *u) {
         unit_show(u);
         spr_move(u->obj, (u->tx << 4) - map_get_px() + u->dx, (u->ty << 4) - map_get_py() + u->dy);
     }
+}
+
+
+void unit_hide_all() {
+    for(uint i = 0; i < _units_size; i++) {
+        unit_hide(_all_units[i]);
+    }
+    
+    spr_copy_all();
 }
 
 
@@ -251,6 +280,23 @@ bool unit_canpass(Unit *u, int dx, int dy) {
 }
 
 
+void unit_use_item(Unit *u, Item *itm) {
+    itm->cnt--;
+    
+    switch (itm->id) {
+        case ITEM_HEAL_POTION:
+            unit_heal(u, 5);
+            break;
+        default:
+            break;
+    }
+}
+
+
+void unit_heal(Unit *u, uint hp) {
+    u->stats.hp = min(hp, u->stats.hp);
+    // @todo add cool particle effect showing damage
+}
 
 void unit_kill(Unit *u) {
     u->dead = 80;

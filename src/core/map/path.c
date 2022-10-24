@@ -72,8 +72,6 @@ direction_t pf_best_dir(u8 *dist_map, uint x, uint y) {
 
 
 uint pf_dist(int x1, int y1, int x2, int y2) {
-    x1 -= x2;
-    y1 -= y2;
     uint x = abs(x1 - x2);
     uint y = abs(y1 - y2);
 

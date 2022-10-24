@@ -287,7 +287,7 @@ void bg_affine_init(AFFINE_BG *bg, const uint8_t mapBlock, const uint8_t tileBlo
      | BG_MAP_BASE(mapBlock) | BG_TILE_BASE(tileBlock);
 
     bg_move(bg, 0, 0);
-    bg_show(bg);
+    bg_show(num);
 
     bg_set_size(bg, BG_SIZE_AFF_16x16);
 }
@@ -307,7 +307,7 @@ void bg_init(BG_REGULAR *bg, const uint8_t mapBlock, const uint8_t tileBlock, co
         | BG_MAP_BASE(mapBlock) | BG_TILE_BASE(tileBlock);
     
     bg_move(bg, 0, 0);
-    bg_show(bg);
+    bg_show(num);
 
     bg_set_size(bg, BG_SIZE_REG_32x32);
 }
@@ -315,17 +315,19 @@ void bg_init(BG_REGULAR *bg, const uint8_t mapBlock, const uint8_t tileBlock, co
 
 /**
  * Visually shows a background
+ * @param num 0-3
  */
-inline void bg_show(const BG_REGULAR *bg)
+inline void bg_show(const uint num)
 {
-	REG_DISPCNT |= BG0_ON << bg->map_number;
+	REG_DISPCNT |= BG0_ON << (num & 0x3);
 }
 
 
 /**
  * Visually hides a background
+ * @param num 0-3
  */
-inline void bg_hide(const BG_REGULAR *bg)
+inline void bg_hide(const uint num)
 {
-    REG_DISPCNT &= ~(BG0_ON << bg->map_number);
+    REG_DISPCNT &= ~(BG0_ON << (num & 0x3));
 }

@@ -3,6 +3,7 @@
 #include "../../text.h"
 #include "../map/map.h"
 #include "../map/path.h"
+#include "../hud/hud.h"
 #include "../team.h"
 #include "unit.h"
 #include "stats.h"
@@ -77,7 +78,7 @@ static void ps_init_selecting() {
     const uint SX = 14, SY = 12;
     // if we are in follow mode, then skip selections
     if(tm_auto_follow()) {
-        if(tm_leader() == plr) {
+        if(tm_is_leader(plr)) {
             if(key & KEY_B) {
                 ps_set(PS_MOVE);
                 return;
@@ -132,11 +133,14 @@ static void ps_selecting() {
     } else if(key & KEY_DOWN) {
         ps_set(PS_DONE);
     } else if(key & KEY_RIGHT) {
-        if(tm_leader() != plr)
+        if(!tm_is_leader(plr))
             ps_set(PS_FOLLOWING);
     } else if(key & KEY_LEFT) {
         ps_set(PS_ATK);
-    } else if(tm_leader() == plr) {
+    } else if(key & KEY_START) {
+        hud_stat_menu(&plr->stats, &plr->inv);
+        ps_init_selecting();
+    } else if(tm_is_leader(plr)) {
         // set auto mode if we are pressing B
         if(key & KEY_B) {
             tm_set_auto_follow(true);
@@ -160,9 +164,21 @@ static void ps_init_attack() {
     plr_hud();
 }
 
+
+const char _errs[][23] = {
+    [ATK_FAIL_EMPTY]="NOTHING TO ATTACK",
+    [ATK_FAIL_FRIENDLY]="CANNOT ATTACK TEAMMATE",
+    [ATK_FAIL_OUT_OF_RANGE]="NOT IN RANGE",
+    [ATK_FAIL_SELF]="CANNOT ATTACK SELF",
+};
+
+
 static bool _do_atk() {
-    if(!cur_do_attack(plr)) {
-        text_print("CANNOT ATTACK HERE", 0, 19); // @TODO REPLACE WITH HUD FUNCTION
+    atk_error_t e = cur_do_attack(plr);
+
+    if(e != ATK_SUCCESS) {
+        bar_string((char*)_errs[e], FMT_CENTER_JUSTIFY);
+        bar_set_timeout(120);
         return false;
     }
 
@@ -177,11 +193,13 @@ static void ps_attack() {
     key = key_pressed_repeat_after(8);
 
     if(key & KEY_B) {
-        ps_set(PS_SELECTING);
+        if(steps)
+            ps_set(PS_SELECTING);
+        else
+            ps_set(PS_DONE);
         _attack_clean_up();
         return;
     }
-
 
     if(key & KEY_RIGHT)
         cur_move(DIRECTION_RIGHT);
@@ -227,11 +245,14 @@ static void ps_move() {
     plr_do_flash();
 
     if(!steps && !map_moving()) {
-        ps_set(PS_DONE);
+        if(tm_auto_follow())
+            ps_set(PS_DONE);
+        else
+            ps_set(PS_ATK);
         return;
     }
 
-    if((key & KEY_B) == 0 && tm_auto_follow() && plr == tm_leader()) {
+    if((key & KEY_B) == 0 && tm_auto_follow() && tm_is_leader(plr)) {
         tm_set_auto_follow(false);
         ps_set(PS_SELECTING);
         return;
@@ -276,26 +297,21 @@ void plr_switch(Unit *u) {
  * Draws the player's hud
  */
 void plr_hud() {
-    bg_fill(_win->background, 0, 0, 30, 20, 0);
+    bg_fill(_win->background, 0, 0, 30, 18, 0);
 
     // draw HP bar
-    bg_write_tile(_win->background, 0, 0, 544);
-    text_uint(plr->stats.hp, 2, 0);
-    text_char('/', 3, 0);
-    text_uint(plr->stats.max_hp, 5, 0);
+    hud_hp(0, 0, plr->stats.hp, plr->stats.max_hp);
     
     // draw lvl
-    bg_write_tile(_win->background, 0, 1, 546);
-    text_uint(plr->stats.level, 1, 1);
+    text_printf("%c%d", 0, 1, 546, plr->stats.level);
 
     // draw current floor
-    // bg_write_tile(_win->background, 28, 0, 546);
-    // text_uint(map_get_map()->level, 29, 0);
+    text_printf("%c%d", 28, 0, 576, map_get_map()->level);
 
     // draw icon
     bg_write_tile(_win->background, 3, 1, ps_icons[state]);
 
     // draw leader icon
-    if(tm_leader() == plr)
+    if(tm_is_leader(plr))
         bg_write_tile(_win->background, 4, 1, 582);
 }

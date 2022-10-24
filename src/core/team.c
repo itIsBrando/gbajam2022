@@ -100,6 +100,11 @@ Unit *tm_leader() {
     return &_tm->units[0];
 }
 
+
+inline bool tm_is_leader(Unit *u) {
+    return tm_leader() == u;
+}
+
 Team *tm_get() {
     return _tm;
 }
